@@ -27,6 +27,9 @@
   template: 
     src: registry-service.j2
     dest: "/etc/systemd/system/{{ registry_container_name }}.service"
+    group: root
+    owner: root
+    mode: 0755
 
 - name: Start the Registry Container using Podman
   command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ external_registry_port }} --restart=always -v {{ registry_container_name }}:/var/lib/registry:z -v {{ container_registry_auth_dir }}:/auth:z {% if enable_authz_on_container_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_container_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_container_authzfile }}" {% endif %} {% if enable_auth_on_external_registry | bool %} -v {{ external_registry_cert_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_container_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_container_certkeyfile }} {{ container_registry_image }} {% endif %}
