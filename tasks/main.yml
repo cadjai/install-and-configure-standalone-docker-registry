@@ -1,0 +1,18 @@
+---
+# tasks file for roles/install-and-configure-external-docker-registry
+
+- name: Import tasks to install RPM based registry
+  import_tasks: deploy-rpm-registry.yml
+  when: 
+    - not use_containeried_registry is defined or not use_containeried_registry | bool
+
+- name: Import tasks to install containerized registry
+  import_tasks: deploy-containerized-registry.yml
+  when: 
+    - use_containeried_registry is defined
+    - use_containeried_registry | bool
+
+- name: Import tasks to secure registry
+  import_tasks: secure-registry.yml 
+  when: 
+    - secure_external_registry | bool

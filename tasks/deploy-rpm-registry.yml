@@ -1,0 +1,46 @@
+## Add task to enable repo in line
+- name: Add repository
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    gpgcheck: no
+    enabled: no
+    file: epel
+    state: present
+
+- name: Intall docker registry RPM
+  yum:
+    name: docker-distribution
+    state: present
+    enablerepo: "epel"
+
+- name: Create registry config  directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+    owner: root
+   group: root
+  with_items:
+    - "{{ external_registry_config_dir }}"
+    - "{{ external_registry_auth_dir }}"
+  when:
+    - external_registry_auth_dir is defined and external_registry_auth_dir | length > 0
+
+- name: Copy registry config into place
+  template:
+    src: config.j2
+    dest: "{{ external_registry_config_dir }}/config.xml"
+
+- name: Enable and start the service
+  service:
+    name: docker-distribution
+    state: started
+    enabled: yes
+
+- name: Enable fireward for the service
+  firewalld:
+    service: docker-distribution
+    permanent: yes
+    state: enabled

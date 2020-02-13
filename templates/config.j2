@@ -1,0 +1,33 @@
+version: 0.1
+log:
+  fields:
+    service: registry
+    environment: development
+storage:
+    cache:
+        layerinfo: inmemory
+    filesystem:
+        rootdirectory: /opt/docker-registry
+    delete:
+        enabled: true
+http:
+    addr: :"{{ external_registry_port }}
+{% if secure_external_registry | bool %}
+    tls:
+      certificate: "{{ external_registry_dir }}/{{ external_registry_cert | basename}}"
+      key: "{{ external_registry_dir }}/{{ external_registry_key | basename }}"
+{% if external_registry_client_cas s defined and external_registry_client_cas | length > 0 %}
+      clientcas:
+{% for cltca in external_registry_client_cas %}
+        - "{{ external_registry_dir }}/{{ cltca }}"
+{% endfor %}
+    host: "https://{{ external_registry_fqdn }}:{{ external_registry_port }}"
+{% endif %}
+    secret: "{{ external_registry_secret }}" 
+    relativeurls: false
+{% if enable_auth_on_external_registry and external_registry_auth_dir | length > 0 %}
+auth:
+    htpasswd:
+      realm: basic-realm
+      path: "{{ external_registry_auth_dir }}/{{ external_registry_auth_file }}" 
+{% endif %}

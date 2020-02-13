@@ -1,0 +1,29 @@
+---
+# defaults file for roles/install-and-configure-external-docker-registry
+use_containeried_registry: false
+secure_external_registry: false
+external_registry_fqdn: ''
+external_registry_port: '5000'
+external_registry_cert: ''
+external_registry_key: ''
+external_registry_cert_dir: '/etc/docker-distribution/certs'
+external_registry_secret: 'testsecret'
+enable_auth_on_external_registry: false
+external_registry_auth_dir: '/etc/docker-distribution/registry_passwd'
+external_registry_auth_file: 'registry_passwd'
+external_registry_config_dir: '/etc/docker-distribution/registry'
+external_registry_client_cas:
+container_registry_packages:
+  - slirp4netns
+  - podman
+container_registry_data_dir: '/opt/registry/data'
+container_registry_auth_dir: '/opt/registry/auth'
+registry_container_name: "mirror-registry"
+registry_container_port: '5000'
+enable_authz_on_container_registry: false
+enable_auth_on_container_registry: false
+registry_container_certfile: 'registry.crt'
+registry_container_authzfile: 'htpasswd'
+registry_container_authzrealm: "Registry Realm"
+registry_container_certkeyfile: "registry.key"
+container_registry_image: "docker.io/library/registry:2"

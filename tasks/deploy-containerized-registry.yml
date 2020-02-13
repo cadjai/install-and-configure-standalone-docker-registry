@@ -1,0 +1,50 @@
+- name: Intall Containeried docker registry packages
+  yum:
+    name: {{ container_registry_packages }}
+    state: present
+
+- name: Create Registry directories 1 of 2
+  file:
+    state: directory
+    path: "{{ container_registry_auth_dir }}"
+    mode: 0755
+    owner: root
+    group: root
+  when:
+    - container_registry_auth_dir is defined and container_registry_auth_dir | length > 0
+
+- name: Create Registry directories 2 of 2
+  file:
+    state: directory
+    path: "{{ container_registry_data_dir }}"
+    mode: 0755
+    owner: root
+    group: root
+  when:
+    - container_registry_data_dir is defined and container_registry_data_dir | length > 0
+
+- name: Copy Systemd Service file onto box to enable the registry pod to be restarted after reboot
+  template: 
+    src: registry-service.j2
+    dest: "/etc/systemd/system/{{ registry_container_name }}.service"
+
+- name: Start the Registry Container using Podman
+  command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ external_registry_port }} --restart=always -v {{ registry_container_name }}:/var/lib/registry:z -v {{ container_registry_auth_dir }}:/auth:z {% if enable_authz_on_container_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_container_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_container_authzfile }}" {% endif %} {% if enable_auth_on_external_registry | bool %} -v {{ external_registry_cert_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_container_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_container_certkeyfile }} {{ container_registry_image }} {% endif %}
+  register: container_registry_started
+
+- name: Reload Systemd to that the registry service is loaded
+  systemd:
+    daemon_reload: yes
+  register: systemd_reloaded
+
+- name: Enable the Registry service so that the registry is restarted after a reboot
+  systemd:
+    name: "{{ registry_container_name }}.service"
+    enabled: yes
+  register: registry_service_enabled
+
+- name: Enable fireward for the registry service
+  firewalld:
+    port: "{{ external_registry_port }}" 
+    permanent: yes
+    state: enabled

@@ -1,0 +1,10 @@
+[Unit]
+Description=Registry Podman container
+Wants=syslog.service
+[Service]
+Restart=always
+ExecStart=/usr/bin/podman start -a {{ registry_container_name }}
+execStop=/usr/bin/podman stop -t 10 {{ registry_container_name }} 
+[Install]
+WantedBy=multi-user.target
+
