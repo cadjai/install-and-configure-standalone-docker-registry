@@ -21,7 +21,7 @@
     path: "{{ item }}"
     mode: 0755
     owner: root
-   group: root
+    group: root
   with_items:
     - "{{ registry_data_dir }}"
     - "{{ registry_auth_dir }}"
