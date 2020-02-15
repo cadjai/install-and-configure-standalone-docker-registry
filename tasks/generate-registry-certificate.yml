@@ -1,0 +1,11 @@
+---
+- name: Create Self Signed Certificate and key for registry
+  openssl_certificate:
+    path: "{{ registry_certs_dir }}/{{ registry_certfile }}"
+    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+    csr_path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
+    provider: selfsigned
+  when:
+    - generate_selfsigned_registry_certfiles is defined
+    - generate_selfsigned_registry_certfiles | bool
+  register: selfsigned_cert_created
