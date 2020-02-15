@@ -1,6 +1,6 @@
 - name: Intall Containeried docker registry packages
   yum:
-    name: {{ container_registry_packages }}
+    name: "{{ container_registry_packages }}"
     state: present
 
 - name: Create Registry directories 1 of 2
