@@ -1,17 +1,17 @@
 - name: Create Certificate directory
   file:
     state: directory
-    path: "{{ external_registry_cert_dir }}"
+    path: "{{ registry_certs_dir }}"
     mode: 0755
     owner: root
     group: root
   when:
-    - external_registry_cert_dir is defined and external_registry_cert_dir | length > 0 
+    - registry_certs_dir is defined and registry_certs_dir | length > 0 
 
 - name: Copy certifcate to directory created above
   copy:
     remote_src: yes
-    src: "{{ external_registry_cert }}"
-    dest: "{{ external_registry_cert_dir }}"
+    src: "{{ registry_certfile }}"
+    dest: "{{ registry_certs_dir }}"
   when: 
-    - external_registry_cert is defined and external_registry_cert | length > 0
+    - registry_certfile is defined and registry_certfile | length > 0

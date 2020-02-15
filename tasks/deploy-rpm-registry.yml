@@ -23,15 +23,15 @@
     owner: root
    group: root
   with_items:
-    - "{{ external_registry_config_dir }}"
-    - "{{ external_registry_auth_dir }}"
+    - "{{ registry_data_dir }}"
+    - "{{ registry_auth_dir }}"
   when:
-    - external_registry_auth_dir is defined and external_registry_auth_dir | length > 0
+    - registry_auth_dir is defined and registry_auth_dir | length > 0
 
 - name: Copy registry config into place
   template:
     src: config.j2
-    dest: "{{ external_registry_config_dir }}/config.xml"
+    dest: "{{ registry_data_dir }}/config.xml"
 
 - name: Enable and start the service
   service:

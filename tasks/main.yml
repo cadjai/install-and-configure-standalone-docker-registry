@@ -1,6 +1,11 @@
 ---
 # tasks file for roles/install-and-configure-external-docker-registry
 
+- name: Import tasks to create self signed certificate 
+  import_tasks: generate-registry-certificate.yml
+  when: 
+    - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
+
 - name: Import tasks to install RPM based registry
   import_tasks: deploy-rpm-registry.yml
   when: 
@@ -15,4 +20,4 @@
 - name: Import tasks to secure registry
   import_tasks: secure-registry.yml 
   when: 
-    - secure_external_registry | bool
+    - secure_registry | bool
