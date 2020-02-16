@@ -10,6 +10,14 @@
   when: 
     - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
 
+- name: Import tasks to create Authentication file for Registry
+  import_tasks: generate-registry-authentication.yml 
+  when:
+    - enable_authz_on_registry is defined and enable_authz_on_registry | bool
+    - registry_authzfile is defined and registry_authzfile | length > 0
+    - registry_admin_username is defined and registry_admin_username | length > 0
+    - registry_admin_password is defined and registry_admin_password | length > 0
+
 - name: Import tasks to install RPM based registry
   import_tasks: deploy-rpm-registry.yml
   when: 
@@ -20,4 +28,10 @@
   when: 
     - use_containeried_registry is defined
     - use_containeried_registry | bool
+
+- name: Import tasks to import registry certificate into bastion
+  import_tasks: fetch-registry-certs.yml 
+  when: 
+    - secure_registry | bool
+    - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
 

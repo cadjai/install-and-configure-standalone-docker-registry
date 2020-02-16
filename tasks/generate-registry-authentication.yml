@@ -1,0 +1,12 @@
+---
+- name: Generate Authentication File for registry
+  command: htpasswd -bBc {{ registry_auth_dir }}/{{ registry_authzfile }} {{ registry_admin_username }} {{ registry_admin_password }}
+  ## Commentig the following out for now because it does not generate a bcrypt hash used by htpasswd
+  #htpasswd:
+  #  path: "{{ registry_auth_dir }}/{{ registry_authzfile }}"
+  #  name: "{{ registry_admin_username }}"
+  #  password: "{{ registry_admin_password }}"
+  #  owner: root
+  #  group: root
+  #  mode: 0640
+  #  state: present

@@ -1,0 +1,5 @@
+- name: Fetch the certificate file to the bastion host to be used later
+  fetch:
+    src: "{{ registry_certs_dir }}/{{{ registry_certfile }}"
+    dest: "/tmp/{{ registry_certfile | basename }}"
+    flat: yes
