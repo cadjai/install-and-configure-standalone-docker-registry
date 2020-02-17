@@ -3,38 +3,38 @@
   command: openssl req -newkey rsa:4096 -nodes -sha256 -keyout {{ registry_certs_dir }}/{{ registry_certkeyfile }} -x509 -days 365 -out {{ registry_certs_dir }}/{{ registry_certfile }} -subj "/C={{ cert_country }}/ST={{ cert_state }}/L={{ cert_locality }}/O={{ cert_org }}/OU={{ cert_org_unit }}/CN={{ registry_host_fqdn }}"
   register: selfsigned_cert_created
 
-- name: Generate Private Key
-  openssl_privatekey:
-    path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-    size: 4096
-    cipher: aes256
-    type: RSA
-
-- name: Generate The CSR for the certificate
-  openssl_csr:
-    path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
-    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-    common_name: "{{ registry_host_fqdn }}"
-    country_name: "US"
-    organization_name: "OCP"
-    key_usage:
-      - digitalSignature
-      - keyAgreement
-    extended_key_usage:
-      - clientAuth
-
-- name: Create Self Signed Certificate and key for registry
-  openssl_certificate:
-    path: "{{ registry_certs_dir }}/{{ registry_certfile }}"
-    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-    csr_path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
-    provider: selfsigned
-    subject_alt_name:
-      - "{{ registry_host_fqdn }}"
-  when:
-    - generate_selfsigned_registry_certfiles is defined
-    - generate_selfsigned_registry_certfiles | bool
-  register: selfsigned_cert_created
+#- name: Generate Private Key
+#  openssl_privatekey:
+#    path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+#    size: 4096
+#    #cipher: aes256
+#    type: RSA
+#
+#- name: Generate The CSR for the certificate
+#  openssl_csr:
+#    path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
+#    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+#    common_name: "{{ registry_host_fqdn }}"
+#    country_name: "US"
+#    organization_name: "OCP"
+#    key_usage:
+#      - digitalSignature
+#      - keyAgreement
+#    extended_key_usage:
+#      - clientAuth
+#
+#- name: Create Self Signed Certificate and key for registry
+#  openssl_certificate:
+#    path: "{{ registry_certs_dir }}/{{ registry_certfile }}"
+#    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+#    csr_path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
+#    provider: selfsigned
+#    subject_alt_name:
+#      - "{{ registry_host_fqdn }}"
+#  when:
+#    - generate_selfsigned_registry_certfiles is defined
+#    - generate_selfsigned_registry_certfiles | bool
+#  register: selfsigned_cert_created
 
 - name: Copy the Registry cert generated above to the to Cert anchor folder so this host can trust it
   command: "cp {{ registry_certs_dir }}/{{ registry_certfile }} /etc/pki/ca-trust/source/anchors/{{ registry_certfile }}" 
