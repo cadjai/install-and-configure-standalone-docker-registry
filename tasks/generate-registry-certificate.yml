@@ -48,7 +48,7 @@
 
 - name: Check that the CA file was successfully created in one of the steps above
   stat:
-    path: {{ registry_certs_dir }}/{{ registry_ca_certfile }}
+    path: "{{ registry_certs_dir }}/{{ registry_ca_certfile }}"
   register: ca_cert_file
 
 - name: Trust the Registry CA Cert from above
