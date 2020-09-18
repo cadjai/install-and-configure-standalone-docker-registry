@@ -14,16 +14,17 @@ registry_certs_dir: '/opt/registry/certs'
 registry_data_dir: '/opt/registry/data'
 registry_auth_dir: '/opt/registry/auth'
 registry_authzfile: 'registry_authz'
-registry_container_name: "mirror-registry"
+registry_container_name: 'mirror-registry'
 registry_container_port: '5000'
 enable_authz_on_registry: false
 enable_auth_on_registry: false
 registry_certcsrfile: 'registry.csr'
 registry_certfile: 'registry.crt'
-registry_certkeyfile: "registry.key"
+registry_certkeyfile: 'registry.key'
+registry_ca_certfile: 'registry-ca.crt'
 registry_authzfile: 'registry_passwd'
-registry_authzrealm: "Registry Realm"
-registry_container_image: "docker.io/library/registry:2"
+registry_authzrealm: 'Registry Realm'
+registry_container_image: 'docker.io/library/registry:2'
 generate_selfsigned_registry_certfiles: ''
 registry_admin_username:
 registry_admin_password: 

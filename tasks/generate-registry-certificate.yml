@@ -1,49 +1,65 @@
 ---
-- name: Generate Self sgned certificate using shell as the following are not being trusted
-  command: openssl req -newkey rsa:4096 -nodes -sha256 -keyout {{ registry_certs_dir }}/{{ registry_certkeyfile }} -x509 -days 365 -out {{ registry_certs_dir }}/{{ registry_certfile }} -subj "/C={{ cert_country }}/ST={{ cert_state }}/L={{ cert_locality }}/O={{ cert_org }}/OU={{ cert_org_unit }}/CN={{ registry_host_fqdn }}"
-  register: selfsigned_cert_created
-
-#- name: Generate Private Key
-#  openssl_privatekey:
-#    path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-#    size: 4096
-#    #cipher: aes256
-#    type: RSA
-#
-#- name: Generate The CSR for the certificate
-#  openssl_csr:
-#    path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
-#    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-#    common_name: "{{ registry_host_fqdn }}"
-#    country_name: "US"
-#    organization_name: "OCP"
-#    key_usage:
-#      - digitalSignature
-#      - keyAgreement
-#    extended_key_usage:
-#      - clientAuth
-#
-#- name: Create Self Signed Certificate and key for registry
-#  openssl_certificate:
-#    path: "{{ registry_certs_dir }}/{{ registry_certfile }}"
-#    privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
-#    csr_path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
-#    provider: selfsigned
-#    subject_alt_name:
-#      - "{{ registry_host_fqdn }}"
-#  when:
-#    - generate_selfsigned_registry_certfiles is defined
-#    - generate_selfsigned_registry_certfiles | bool
-#  register: selfsigned_cert_created
-
-- name: Copy the Registry cert generated above to the to Cert anchor folder so this host can trust it
-  command: "cp {{ registry_certs_dir }}/{{ registry_certfile }} /etc/pki/ca-trust/source/anchors/{{ registry_certfile }}" 
+- name: Generate Certificate to be signed by an authority like FreeIpa
   when:
-    - selfsigned_cert_created is defined and selfsigned_cert_created.changed | bool 
-  register: cert_copied
-
-- name: Update Ca DB store to trust downloaded CA from above
-  command: update-ca-trust
+    - secure_registry is defined and secure_registry | bool
+    - not generate_selfsigned_registry_certfiles is defined or (generate_selfsigned_registry_certfiles is defined and not generate_selfsigned_registry_certfiles | bool)
+    - ipa_server is defined and not dns_servers == ''
+    - ipa_admin is defined and not dns_servers == ''
+    - ipa_password is defined and not dns_servers == ''
+  block:
+    - name: Generate Private Key
+      openssl_privatekey:
+        path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+        size: 4096
+        cipher: aes256
+        type: RSA
+    - name: Generate The CSR for the certificate
+      openssl_csr:
+        path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
+        privatekey_path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
+        common_name: "{{ registry_host_fqdn }}"
+        country_name: "US"
+        organization_name: "OCP"
+        key_usage:
+          - digitalSignature
+          - keyAgreement
+        extended_key_usage:
+          - clientAuth
+    ### See if this can be refactored later
+    - name: Generate Signed certificate from IPA
+      shell: "echo {{ipa_password}} | kinit {{ipa_admin}};/usr/bin/ipa cert-request {{registry_certs_dir}}/{{registry_certcsrfile}} --add --principal HOST/{{registry_host_fqdn}} --certificate-out={{registry_certs_dir}}/{{registry_certfile}}"
+      register: certificate_generated
+    - name: Pull CA Cert from IPA Server
+      get_url:
+        url: "http://{{ipa_server}}/ipa/config/ca.crt"
+        dest: "{{ registry_certs_dir }}/{{ registry_ca_certfile }}"
+        
+- name: Generate Self signed certificate
   when:
-    - selfsigned_cert_created is defined and selfsigned_cert_created.changed | bool
-  register: cadb_updated
+    - secure_registry is defined and secure_registry | bool
+    - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
+  block:
+    - name: Generate Self signed certificate using shell as the following are not being trusted
+      command: openssl req -newkey rsa:4096 -nodes -sha256 -keyout {{ registry_certs_dir }}/{{ registry_certkeyfile }} -x509 -days 365 -out {{ registry_certs_dir }}/{{ registry_certfile }} -subj "/C={{ cert_country }}/ST={{ cert_state }}/L={{ cert_locality }}/O={{ cert_org }}/OU={{ cert_org_unit }}/CN={{ registry_host_fqdn }}"
+      register: selfsigned_cert_created
+    ## Since this is a self signed cert it is also the CA
+    - name: Copy the Registry cert generated above to be the CA cert
+      command: "cp {{ registry_certs_dir }}/{{ registry_certfile }} {{ registry_certs_dir }}/{{ registry_ca_certfile }}" 
+
+- name: Check that the CA file was successfully created in one of the steps above
+  stat:
+    path: {{ registry_certs_dir }}/{{ registry_ca_certfile }}
+  register: ca_cert_file
+
+- name: Trust the Registry CA Cert from above
+  when:
+    - ca_cert_file is defined 
+    - ca_cert_file.stat.isreg 
+  block:
+    - name: Copy the Registry CA cert from one of the steps above to the to Cert anchor folder so this host can trust it
+      command: "cp {{ registry_certs_dir }}/{{ registry_ca_certfile }} /etc/pki/ca-trust/source/anchors/{{ registry_ca_certfile }}" 
+      register: cert_copied
+    
+    - name: Update Ca DB store to trust downloaded CA from above
+      command: update-ca-trust extract
+      register: cadb_updated
