@@ -14,7 +14,6 @@
   import_tasks: generate-registry-authentication.yml 
   when:
     - enable_authz_on_registry is defined and enable_authz_on_registry | bool
-    - registry_authzfile is defined and registry_authzfile | length > 0
     - registry_admin_username is defined and registry_admin_username | length > 0
     - registry_admin_password is defined and registry_admin_password | length > 0
 

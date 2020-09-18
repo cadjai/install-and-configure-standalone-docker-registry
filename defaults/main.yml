@@ -13,6 +13,7 @@ container_registry_packages:
 registry_certs_dir: '/opt/registry/certs'
 registry_data_dir: '/opt/registry/data'
 registry_auth_dir: '/opt/registry/auth'
+registry_authzfile: 'registry_authz'
 registry_container_name: "mirror-registry"
 registry_container_port: '5000'
 enable_authz_on_registry: false
