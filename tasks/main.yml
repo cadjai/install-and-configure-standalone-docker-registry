@@ -1,5 +1,14 @@
 ---
 # tasks file for roles/install-and-configure-external-docker-registry
+- name: Get Host Facts
+  setup:
+
+- name: Set Registry hostname if not set already
+  set_fact:
+    registry_host_fqdn: "{{ ansible_fqdn }}"
+  when:
+    - not registry_host_fqdn is defined or (registry_host_fqdn is defined and registry_host_fqdn == ''
+  
 - name: Import tasks to secure registry
   import_tasks: secure-registry.yml 
   when: 
