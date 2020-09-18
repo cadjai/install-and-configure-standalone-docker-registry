@@ -32,5 +32,4 @@
   import_tasks: fetch-registry-certs.yml 
   when: 
     - secure_registry | bool
-    - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
-
+    - not registry_certfile is defined or (registry_certfile is defined and  registry_certfile == '')
