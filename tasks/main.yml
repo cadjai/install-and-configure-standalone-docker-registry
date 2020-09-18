@@ -8,7 +8,8 @@
 - name: Import tasks to create self signed certificate 
   import_tasks: generate-registry-certificate.yml
   when: 
-    - generate_selfsigned_registry_certfiles is defined and generate_selfsigned_registry_certfiles | bool
+    - secure_registry | bool
+    - not registry_certfile is defined or (registry_certfile is defined and  registry_certfile == '')
 
 - name: Import tasks to create Authentication file for Registry
   import_tasks: generate-registry-authentication.yml 
