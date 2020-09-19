@@ -5,15 +5,15 @@ secure_registry: false
 registry_host_fqdn: ''
 registry_host_port: '5000'
 registry_secret: 'testsecret'
-registry_client_cas:
+registry_client_cas: []
 container_registry_packages:
   - slirp4netns
   - podman
   - firewalld
-registry_certs_dir: '/opt/registry/certs'
-registry_data_dir: '/opt/registry/data'
-registry_auth_dir: '/opt/registry/auth'
-registry_authzfile: 'registry_authz'
+registry_root_dir: '/opt/registry'
+registry_certs_dir: '{{ registry_root_dir }}/certs'
+registry_data_dir: '{{ registry_root_dir }}/data'
+registry_auth_dir: '{{ registry_root_dir }}/auth'
 registry_container_name: 'mirror-registry'
 registry_container_port: '5000'
 enable_authz_on_registry: false

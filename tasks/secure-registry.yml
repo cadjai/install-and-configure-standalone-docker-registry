@@ -5,8 +5,9 @@
     mode: 0755
     owner: root
     group: root
+    recurse: yes
   when:
-    - registry_certs_dir is defined and registry_certs_dir | length > 0 
+    - registry_certs_dir is defined and not registry_certs_dir == '' 
 
 - name: Create Registry Data  directory
   file:
@@ -15,8 +16,9 @@
     mode: 0755
     owner: root
     group: root
+    recurse: yes
   when:
-    - registry_data_dir is defined and registry_data_dir | length > 0 
+    - registry_data_dir is defined and not registry_data_dir == '' 
 
 - name: Create Registry Auth directory
   file:
@@ -25,14 +27,15 @@
     mode: 0755
     owner: root
     group: root
+    recurse: yes
   when:
-    - registry_auth_dir is defined and registry_auth_dir | length > 0 
+    - registry_auth_dir is defined and not registry_auth_dir == '' 
 
 - name: Copy certifcate to directory created above
   copy:
     remote_src: yes
     src: "{{ registry_certfile }}"
-    dest: "{{ registry_certs_dir }}"
+    dest: "{{ registry_certs_dir }}/{{ registry_certfile | basename }}"
   when: 
     - not generate_selfsigned_registry_certfiles is defined or not generate_selfsigned_registry_certfiles | bool 
-    - registry_certfile is defined and registry_certfile | length > 0
+    - registry_certfile is defined and not registry_certfile == ''

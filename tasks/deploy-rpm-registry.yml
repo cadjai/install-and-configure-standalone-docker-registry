@@ -39,8 +39,9 @@
     state: started
     enabled: yes
 
-- name: Enable fireward for the service
+- name: Enable firewalld port for the service
   firewalld:
-    service: docker-distribution
+    port: "{{ registry_host_port | int }}/tcp"
+    immediate: yes
     permanent: yes
     state: enabled

@@ -2,7 +2,6 @@ version: 0.1
 log:
   fields:
     service: registry
-    environment: development
 storage:
     cache:
         layerinfo: inmemory
@@ -11,23 +10,31 @@ storage:
     delete:
         enabled: true
 http:
-    addr: :"{{ registry_host_port }}
+    addr: :"{{ registry_host_port }}"
+    headers: 
+      X-Content-Type-Options: [nosniff]
 {% if secure_registry | bool %}
     tls:
-      certificate: "{{ external_registry_dir }}/{{ registry_certfile | basename}}"
-      key: "{{ external_registry_dir }}/{{ registry_certkeyfile | basename }}"
-{% if registry_client_cas s defined and registry_client_cas | length > 0 %}
+      certificate: "{{ registry_certs_dir }}/{{ registry_certfile | basename}}"
+      key: "{{ registry_certs_dir }}/{{ registry_certkeyfile | basename }}"
+{% if registry_client_cas is defined and registry_client_cas | default([]) | length > 0 %}
       clientcas:
 {% for cltca in registry_client_cas %}
-        - "{{ external_registry_dir }}/{{ cltca }}"
+        - "{{ registry_certs_dir }}/{{ cltca }}"
 {% endfor %}
     host: "https://{{ registry_host_fqdn }}:{{ registry_host_port }}"
 {% endif %}
     secret: "{{ registry_secret }}" 
     relativeurls: false
-{% if enable_auth_on_registry and registry_auth_dir | length > 0 %}
+{% if enable_authz_on_registry and not registry_auth_dir == '' %}
 auth:
     htpasswd:
       realm: basic-realm
       path: "{{ registry_auth_dir }}/{{ registry_authzfile }}" 
 {% endif %}
+{% endif %}
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+    threshold: 3

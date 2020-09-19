@@ -7,7 +7,7 @@
   set_fact:
     registry_host_fqdn: "{{ ansible_fqdn }}"
   when:
-    - not registry_host_fqdn is defined or (registry_host_fqdn is defined and registry_host_fqdn == ''
+    - not registry_host_fqdn is defined or (registry_host_fqdn is defined and registry_host_fqdn == '')
   
 - name: Import tasks to secure registry
   import_tasks: secure-registry.yml 
