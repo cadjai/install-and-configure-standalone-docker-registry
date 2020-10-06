@@ -54,7 +54,7 @@
     enabled: yes
   register: registry_service_enabled
 
-- name: Enable fireward for the registry service
+- name: Enable firewalld for the registry service
   firewalld:
     port: "{{ registry_host_port | int }}/tcp" 
     immediate: yes
