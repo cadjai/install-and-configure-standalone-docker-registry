@@ -9,7 +9,14 @@
   when:
     - not registry_host_fqdn is defined or (registry_host_fqdn is defined and registry_host_fqdn == '')
   
+- name: Ensure the Cert file does not already exist
+  stat:
+    path: registry_certfile
+  register: cert_exist
+
 - name: Import tasks to secure registry
+  vars:
+    cert_exist
   include_tasks: secure-registry.yml 
   when: 
     - secure_registry | bool
@@ -18,7 +25,8 @@
   include_tasks: generate-registry-certificate.yml
   when: 
     - secure_registry | bool
-    - not registry_certfile is defined or (registry_certfile is defined and  registry_certfile == '')
+    - cert_exist is defined 
+    - not cert_exist.stat.exists
 
 - name: Import tasks to create Authentication file for Registry
   include_tasks: generate-registry-authentication.yml 
@@ -42,4 +50,5 @@
   include_tasks: fetch-registry-certs.yml 
   when: 
     - secure_registry | bool
-    - not registry_certfile is defined or (registry_certfile is defined and  registry_certfile == '')
+    - cert_exist is defined 
+    - cert_exist.stat.exists

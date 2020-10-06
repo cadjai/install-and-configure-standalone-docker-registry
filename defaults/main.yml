@@ -28,3 +28,8 @@ registry_container_image: 'docker.io/library/registry:2'
 generate_selfsigned_registry_certfiles: ''
 registry_admin_username:
 registry_admin_password: 
+cert_country: "US"
+cert_state: "CO"
+cert_locality: "Denver"
+cert_org: "Red Hat"
+cert_org_unit: "Standalone Registry"

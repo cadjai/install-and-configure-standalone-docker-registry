@@ -1,3 +1,10 @@
+- name: Override default registry variables if installing rpm based registry
+  set_fact:
+    registry_root_dir: "/etc/docker-distribution/registry"
+    registry_data_dir: "etc/docker-distribution/registry"
+  when:
+    - not use_containeried_registry is defined or not use_containeried_registry | bool
+
 - name: Create Registry Certificate directory
   file:
     state: directory
@@ -38,4 +45,5 @@
     dest: "{{ registry_certs_dir }}/{{ registry_certfile | basename }}"
   when: 
     - not generate_selfsigned_registry_certfiles is defined or not generate_selfsigned_registry_certfiles | bool 
-    - registry_certfile is defined and not registry_certfile == ''
+    - cert_exist is defined 
+    - cert_exist.stat.exists

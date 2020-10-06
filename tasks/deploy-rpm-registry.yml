@@ -31,7 +31,7 @@
 - name: Copy registry config into place
   template:
     src: config.j2
-    dest: "{{ registry_data_dir }}/config.xml"
+    dest: "{{ registry_data_dir }}/config.yml"
 
 - name: Enable and start the service
   service:

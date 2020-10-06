@@ -10,7 +10,7 @@ storage:
     delete:
         enabled: true
 http:
-    addr: :"{{ registry_host_port }}"
+    addr: {{ registry_host_fqdn }}:{{ registry_host_port }}
     headers: 
       X-Content-Type-Options: [nosniff]
 {% if secure_registry | bool %}
