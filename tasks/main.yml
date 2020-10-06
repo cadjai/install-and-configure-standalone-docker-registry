@@ -16,7 +16,7 @@
 
 - name: Import tasks to secure registry
   vars:
-    cert_exist
+    cert_exist: "{{ cert_exist }}"
   include_tasks: secure-registry.yml 
   when: 
     - secure_registry | bool
