@@ -3,34 +3,38 @@ log:
   fields:
     service: registry
 storage:
-    cache:
-        layerinfo: inmemory
-    filesystem:
-        rootdirectory: /opt/docker-registry
-    delete:
-        enabled: true
-http:
-    addr: {{ registry_host_fqdn }}:{{ registry_host_port }}
-    headers: 
-      X-Content-Type-Options: [nosniff]
-{% if secure_registry | bool %}
-    tls:
-      certificate: "{{ registry_certs_dir }}/{{ registry_certfile | basename}}"
-      key: "{{ registry_certs_dir }}/{{ registry_certkeyfile | basename }}"
-{% if registry_client_cas is defined and registry_client_cas | default([]) | length > 0 %}
-      clientcas:
-{% for cltca in registry_client_cas %}
-        - "{{ registry_certs_dir }}/{{ cltca }}"
-{% endfor %}
-    host: "https://{{ registry_host_fqdn }}:{{ registry_host_port }}"
+  cache:
+    layerinfo: inmemory
+  filesystem:
+{% if use_containeried_registry | d(false) | bool %} 
+    rootdirectory: /opt/docker-registry
+{% else %}
+    rootdirectory: /var/lib/registry
 {% endif %}
-    secret: "{{ registry_secret }}" 
-    relativeurls: false
+  delete:
+    enabled: true
+http:
+  addr: :{{ registry_host_port }}
+  headers: 
+    X-Content-Type-Options: [nosniff]
+{% if secure_registry | bool %}
+  host: https:{{ registry_host_fqdn }}:{{ registry_host_port }}
+  tls:
+    certificate: "{{ registry_certs_dir }}/{{ registry_certfile | basename}}"
+    key: "{{ registry_certs_dir }}/{{ registry_certkeyfile | basename }}"
+{% if registry_client_cas is defined and registry_client_cas | default([]) | length > 0 %}
+    clientcas:
+{% for cltca in registry_client_cas %}
+      - "{{ registry_certs_dir }}/{{ cltca }}"
+{% endfor %}
+{% endif %}
+  secret: "{{ registry_secret }}" 
+  relativeurls: false
 {% if enable_authz_on_registry and not registry_auth_dir == '' %}
 auth:
-    htpasswd:
-      realm: basic-realm
-      path: "{{ registry_auth_dir }}/{{ registry_authzfile }}" 
+  htpasswd:
+    realm: basic-realm
+    path: "{{ registry_auth_dir }}/{{ registry_authzfile }}" 
 {% endif %}
 {% endif %}
 health:
