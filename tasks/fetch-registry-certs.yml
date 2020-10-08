@@ -1,5 +1,10 @@
 - name: Fetch the certificate file to the bastion host to be used later
   fetch:
-    src: "{{ registry_certs_dir }}/{{ registry_certfile }}"
-    dest: "/tmp/{{ registry_certfile }}"
+    src: "{{ registry_certs_dir }}/{{ registry_ca_certfile | basename }}"
+    dest: "/tmp/{{ registry_ca_certfile | basename }}"
     flat: yes
+
+- name: Set CA Fact to use later
+  set_fact:
+    registry_ca_certfile: "/tmp/{{ registry_ca_certfile | basename }}"
+    cacheable: true

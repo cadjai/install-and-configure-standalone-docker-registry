@@ -51,4 +51,4 @@
   when: 
     - secure_registry | bool
     - cert_exist is defined 
-    - cert_exist.stat.exists
+    - not cert_exist.stat.exists
