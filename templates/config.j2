@@ -18,7 +18,7 @@ http:
   headers: 
     X-Content-Type-Options: [nosniff]
 {% if secure_registry | bool %}
-  host: https:{{ registry_host_fqdn }}:{{ registry_host_port }}
+  host: https://{{ registry_host_fqdn }}:{{ registry_host_port }}
   tls:
     certificate: "{{ registry_certs_dir }}/{{ registry_certfile | basename}}"
     key: "{{ registry_certs_dir }}/{{ registry_certkeyfile | basename }}"
