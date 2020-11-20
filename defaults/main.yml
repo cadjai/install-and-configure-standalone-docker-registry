@@ -33,3 +33,5 @@ cert_state: "CO"
 cert_locality: "Denver"
 cert_org: "Red Hat"
 cert_org_unit: "Standalone Registry"
+registry_ca_keyfile: 'registry-ca.key'
+registry_ca_csrfile: 'registry-ca.csr'
