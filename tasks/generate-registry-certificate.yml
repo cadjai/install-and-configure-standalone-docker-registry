@@ -89,13 +89,7 @@
         organization_name: "{{ cert_org }}"
         organizational_unit_name: "{{ cert_org_unit }}"
         common_name: "{{ registry_host_fqdn }}"
-        #subject: "{{ registry_host_fqdn }}"
         subject_alt_name: "DNS:{{ registry_host_fqdn }}"
-        key_usage:
-          - digitalSignature
-          - keyAgreement
-        extended_key_usage:
-          - clientAuth
 
     - name: Generate Self signed Registry certificate
       openssl_certificate:
