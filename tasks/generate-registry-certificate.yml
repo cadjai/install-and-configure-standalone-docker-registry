@@ -11,8 +11,8 @@
       openssl_privatekey:
         path: "{{ registry_certs_dir }}/{{ registry_certkeyfile }}"
         size: 4096
-        cipher: aes256
         type: RSA
+
     - name: Generate The CSR for the certificate
       openssl_csr:
         path: "{{ registry_certs_dir }}/{{ registry_certcsrfile }}"
@@ -22,11 +22,7 @@
         organization_name: "{{ cert_org }}"
         organizational_unit_name: "{{ cert_org_unit }}"
         common_name: "{{ registry_host_fqdn }}"
-        key_usage:
-          - digitalSignature
-          - keyAgreement
-        extended_key_usage:
-          - clientAuth
+
     ### See if this can be refactored later
     - name: Generate Signed certificate from IPA
       shell: "echo {{ipa_password}} | kinit {{ipa_admin}};/usr/bin/ipa cert-request {{registry_certs_dir}}/{{registry_certcsrfile}} --add --principal HOST/{{registry_host_fqdn}} --certificate-out={{registry_certs_dir}}/{{registry_certfile}}"
