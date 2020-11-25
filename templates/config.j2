@@ -16,8 +16,13 @@ http:
 {% if secure_registry | bool %}
   host: https://{{ registry_host_fqdn }}:{{ registry_host_port }}
   tls:
+{% if use_containeried_registry | bool %}
+    certificate: "{{ registry_container_cert_dir }}/{{ registry_certfile | basename}}"
+    key: "{{ registry_container_cert_dir }}/{{ registry_certkeyfile | basename }}"
+{% else %}
     certificate: "{{ registry_certs_dir }}/{{ registry_certfile | basename}}"
     key: "{{ registry_certs_dir }}/{{ registry_certkeyfile | basename }}"
+{% endif %}
 {% if registry_client_cas is defined and registry_client_cas | default([]) | length > 0 %}
     clientcas:
 {% for cltca in registry_client_cas %}
@@ -30,7 +35,11 @@ http:
 auth:
   htpasswd:
     realm: basic-realm
+{% if use_containeried_registry | bool %}
+    path: "{{ registry_container_auth_dir }}/{{ registry_authzfile }}" 
+{% else %}
     path: "{{ registry_auth_dir }}/{{ registry_authzfile }}" 
+{% endif %}
 {% endif %}
 {% endif %}
 health:
