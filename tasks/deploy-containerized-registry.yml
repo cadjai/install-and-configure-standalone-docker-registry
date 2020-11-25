@@ -57,7 +57,7 @@
   register: container_registry_removed
 
 - name: Start the Registry Container using Podman
-  command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if secure_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {% endif %} {{ registry_container_image }}
+  command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_container_dir }}:/var/lib/registry:z -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if secure_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {% endif %} {{ registry_container_image }}
   register: container_registry_started
 
 - name: Generate Systemd file for container to that the registry service is loaded
