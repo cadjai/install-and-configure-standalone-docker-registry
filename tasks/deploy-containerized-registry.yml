@@ -3,45 +3,96 @@
     name: "{{ container_registry_packages }}"
     state: present
 
-- name: Create Registry directories 1 of 2
+- name: Create registry config directories
   file:
     state: directory
-    path: "{{ registry_auth_dir }}"
+    path: "{{ item }}"
     mode: 0755
     owner: root
     group: root
+  with_items:
+    - "{{ registry_data_dir }}"
+    - "{{ registry_auth_dir }}"
+    - "{{ registry_container_dir }}"
   when:
     - registry_auth_dir is defined and registry_auth_dir | length > 0
 
-- name: Create Registry directories 2 of 2
-  file:
-    state: directory
-    path: "{{ registry_data_dir }}"
-    mode: 0755
-    owner: root
-    group: root
-  when:
-    - registry_data_dir is defined and registry_data_dir | length > 0
+- name: Copy registry config into place
+  template:
+    src: config.j2
+    dest: "{{ registry_data_dir }}/config.yml"
 
-- name: Copy Systemd Service file onto box to enable the registry pod to be restarted after reboot
-  template: 
-    src: registry-service.j2
-    dest: "/etc/systemd/system/{{ registry_container_name }}.service"
-    group: root
-    owner: root
-    mode: 0755
+- name: Check if the container exists from previous runs
+  shell: podman ps -a | grep {{ registry_container_name }}
+  register: container_stats
+  failed_when:
+    - container_stats is defined
+    - container_stats.rc is defined
+    - container_stats.rc > 1
 
 - name: Stop the container in case it was running from previous runs
   command: podman stop {{ registry_container_name }}
+  when:
+    - container_stats is defined
+    - container_stats.stdout_lines is defined
+    - container_stats.stdout_lines | length > 0
   register: container_registry_stopped
 
 - name: Remove the container in case it was running from previous runs
-  command: podman rm {{ registry_container_name }}
+  command: podman rm -f {{ registry_container_name }}
+  when:
+    - container_stats is defined
+    - container_stats.stdout_lines is defined
+    - container_stats.stdout_lines | length > 0
+  register: container_registry_removed
+
+- name: Remove the container systemd file in case it was running from previous runs
+  file:
+    path: /etc/systemd/system/container-{{ registry_container_name }}.service
+    state: absent
+  when:
+    - container_stats is defined
+    - container_stats.stdout_lines is defined
+    - container_stats.stdout_lines | length > 0
   register: container_registry_removed
 
 - name: Start the Registry Container using Podman
-  command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_container_name }}:/var/lib/registry:z -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if enable_auth_on_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {{ registry_container_image }} {% endif %}
+  command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if secure_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {% endif %} {{ registry_container_image }}
+  #command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_container_dir }}:/var/lib/registry:z -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if secure_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {% endif %} {{ registry_container_image }}
+  #command: podman run -d --name {{ registry_container_name }} -p {{ registry_container_port }}:{{ registry_host_port }} --restart=always -v {{ registry_data_dir }}/config.yml:/etc/docker/registry/config.yml -v {{ registry_container_dir }}:/var/lib/registry:z -v {{ registry_auth_dir }}:/auth:z {% if enable_authz_on_registry | bool %} -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM={{ registry_authzrealm }}" -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/{{ registry_authzfile }}" {% endif %} {% if secure_registry | bool %} -v {{ registry_certs_dir }}:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/{{ registry_certfile }} -e REGISTRY_HTTP_TLS_KEY=/certs/{{ registry_certkeyfile }} {% endif %} {{ registry_container_image }}
   register: container_registry_started
+
+- name: Generate Systemd file for container to that the registry service is loaded
+  command: > 
+    podman generate systemd --files \ 
+    --restart-policy=always \
+    --name {{ registry_container_name }}
+  register: container_registry_service_created
+
+- name: Print output of registry service creation
+  debug:
+    var: container_registry_service_created
+
+- name: Load Registry service file
+  copy:
+    src: "container-{{ registry_container_name }}.service"
+    dest: /etc/systemd/system/container-{{ registry_container_name }}.service
+    mode: 0777
+    owner: root
+    group: root
+    remote_src: true
+    force: true
+  when:
+    - container_registry_service_created is defined
+    - container_registry_service_created.rc == 0
+
+- name: Load Registry service file
+  shell: cat /etc/systemd/system/container-{{ registry_container_name }}.service
+  register: registry_svc_out
+
+- name: Print Registry service file
+  debug:
+    var: registry_svc_out.stdout
 
 - name: Reload Systemd to that the registry service is loaded
   systemd:
@@ -50,7 +101,7 @@
 
 - name: Enable the Registry service so that the registry is restarted after a reboot
   systemd:
-    name: "{{ registry_container_name }}.service"
+    name: "container-{{ registry_container_name }}.service"
     enabled: yes
   register: registry_service_enabled
 
@@ -60,6 +111,12 @@
     immediate: yes
     permanent: yes
     state: enabled
+
+- name: Start the Registry service so that the registry is restarted after a reboot
+  systemd:
+    name: "container-{{ registry_container_name }}.service"
+    state: restarted
+  register: registry_service_restarted
 
 - name: Test that the registry is up and can be connected to
   command: podman login -u {{ registry_admin_username }} -p {{ registry_admin_password }} {{ registry_host_fqdn }}:{{ registry_host_port }}
