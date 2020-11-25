@@ -25,6 +25,7 @@
   with_items:
     - "{{ registry_data_dir }}"
     - "{{ registry_auth_dir }}"
+    - "{{ registry_container_dir }}"
   when:
     - registry_auth_dir is defined and registry_auth_dir | length > 0
 

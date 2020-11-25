@@ -6,11 +6,7 @@ storage:
   cache:
     layerinfo: inmemory
   filesystem:
-{% if use_containeried_registry | d(false) | bool %} 
-    rootdirectory: /opt/docker-registry
-{% else %}
-    rootdirectory: /var/lib/registry
-{% endif %}
+    rootdirectory: {{ registry_container_dir | d('/var/lib/registry') }}
   delete:
     enabled: true
 http:
