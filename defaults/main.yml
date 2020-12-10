@@ -12,7 +12,6 @@ container_registry_packages:
   - firewalld
 registry_root_dir: '/opt/registry'
 registry_certs_dir: '{{ registry_root_dir }}/certs'
-#registry_data_dir: '{{ registry_root_dir }}/data'
 registry_data_dir: '/etc/docker/registry'
 registry_container_dir: '/var/lib/registry'
 registry_auth_dir: '{{ registry_root_dir }}/auth'
