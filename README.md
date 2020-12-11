@@ -56,6 +56,7 @@ Example Playbook
 ----------------
 
 To run it with unecure registry use
+```yaml
     - hosts: registry
       vars:
         registry_host_fqdn: 'registry.example.net'
@@ -66,9 +67,11 @@ To run it with unecure registry use
         registry_host_port: 5000
       roles:
          - { role: registry }
+```
 
 To create a private registry with htpass auth use this. 
 You can add extra vars to control the cert if needed (see default/main.yml for defaults).
+```yaml
     - hosts: registry
       vars:
         registry_host_fqdn: 'registry.example.net'
@@ -82,7 +85,7 @@ You can add extra vars to control the cert if needed (see default/main.yml for d
         registry_host_port: 5000
       roles:
          - { role: registry }
-
+```
 
 License
 -------
