@@ -16,7 +16,7 @@ http:
 {% if secure_registry | bool %}
   host: https://{{ registry_host_fqdn }}:{{ registry_host_port }}
   tls:
-{% if use_containeried_registry | bool %}
+{% if use_containerized_registry | bool %}
     certificate: "{{ registry_container_cert_dir }}/{{ registry_certfile | basename}}"
     key: "{{ registry_container_cert_dir }}/{{ registry_certkeyfile | basename }}"
 {% else %}
@@ -35,7 +35,7 @@ http:
 auth:
   htpasswd:
     realm: basic-realm
-{% if use_containeried_registry | bool %}
+{% if use_containerized_registry | bool %}
     path: "{{ registry_container_auth_dir }}/{{ registry_authzfile }}" 
 {% else %}
     path: "{{ registry_auth_dir }}/{{ registry_authzfile }}" 

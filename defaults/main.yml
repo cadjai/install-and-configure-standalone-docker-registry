@@ -1,6 +1,6 @@
 ---
 # defaults file for roles/install-and-configure-external-docker-registry
-use_containeried_registry: false
+use_containerized_registry: false
 secure_registry: false
 registry_host_fqdn: ''
 registry_host_port: '5000'

@@ -3,7 +3,7 @@
     registry_root_dir: "/etc/docker-distribution/registry"
     registry_data_dir: "/etc/docker-distribution/registry"
   when:
-    - not use_containeried_registry is defined or not use_containeried_registry | bool
+    - not use_containerized_registry is defined or not use_containerized_registry | bool
 
 - name: Create Registry Certificate directory
   file:

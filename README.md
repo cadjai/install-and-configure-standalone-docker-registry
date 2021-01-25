@@ -15,7 +15,7 @@ This has been tested on RHEL7 and RHEL8 using both rpm and containerized approac
 Role Variables
 --------------
 
-- use_containeried_registry: To deploy registry as docker registry v2 container. Default is false
+- use_containerized_registry: To deploy registry as docker registry v2 container. Default is false
 - secure_registry: To create a secure registry with PKI cert and htpasswd for authentication
 - registry_host_fqdn: Host FQDN to use. It will also be used in the cert created and related SAN
 - registry_host_port: Port to bind the registry to on the host. Default to 5000

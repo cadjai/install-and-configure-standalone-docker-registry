@@ -38,13 +38,13 @@
 - name: Import tasks to install RPM based registry
   include_tasks: deploy-rpm-registry.yml
   when: 
-    - not use_containeried_registry is defined or not use_containeried_registry | bool
+    - not use_containerized_registry is defined or not use_containerized_registry | bool
 
 - name: Import tasks to install containerized registry
   include_tasks: deploy-containerized-registry.yml
   when: 
-    - use_containeried_registry is defined
-    - use_containeried_registry | bool
+    - use_containerized_registry is defined
+    - use_containerized_registry | bool
 
 - name: Import tasks to import registry certificate into bastion
   include_tasks: fetch-registry-certs.yml 
